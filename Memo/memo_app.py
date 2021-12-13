@@ -1,6 +1,8 @@
 from functools import partial
 from tkinter import *
 import tkinter as tk
+from tkinter import ttk
+
 from PIL import ImageTk, Image
 import sqlite3
 # import datetime
@@ -10,17 +12,39 @@ from datetime import datetime
 root = Tk()  # creating the GUI window
 
 root.title('Memo app')
-#root.geometry("600x600")
-
-canvas = Canvas(root, width=600, height=300)
-canvas.grid(columnspan=3)
+root.geometry("750x900")
 
 #logo
 logo= Image.open('logo.jpg')
 logo = ImageTk.PhotoImage(logo)
 logo_label = Label(image=logo)
 logo_label.image = logo
-logo_label.grid(column=1, row=0)
+logo_label.pack()
+
+
+# Create a main frame:
+main_frame = Frame(root)
+main_frame.pack(fill=BOTH, expand=1)
+
+canvas = Canvas(main_frame)
+#canvas.grid(columnspan=3)
+canvas.pack(side=LEFT, fill= BOTH, expand=1)
+
+#Add a scrollbar
+my_scrollbar = ttk.Scrollbar(main_frame,orient= VERTICAL, command=canvas.yview)
+my_scrollbar.pack(side=RIGHT, fill=Y)
+
+#Configure the canvas
+canvas.configure(yscrollcommand=my_scrollbar.set)
+canvas.bind('<Configure>', lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+
+# Create another frame
+second_frame = Frame(canvas)
+
+#Adding a new window to the Canvas:
+canvas.create_window((0,0), window=second_frame, anchor="nw")
+
+
 
 # Database:
 
@@ -36,6 +60,27 @@ c.execute("""CREATE TABLE if not exists memos (
         time text,
         content txt
         )""")
+
+def hide_used_btns():
+    for widget in second_frame.winfo_children():
+        widget.destroy()
+
+
+#Deleting an element from the DB
+def delete(id):
+    conn = sqlite3.connect('saved_memos.db')
+    c = conn.cursor()
+
+    #Delete a record:
+    c.execute("DELETE from memos WHERE oid = " + id)
+
+    conn.commit()
+    conn.close()
+    hide_used_btns()
+    update_main_screen()
+    editor.destroy()
+
+
 
 # Adding a new memo to the DB
 def save():
@@ -145,8 +190,12 @@ def open_memo(id):
     content_label.grid(row=3, column=0)
 
     # Create a save button:
-    save_btn = Button(editor, text="Save", command= lambda: update(record_id))
-    save_btn.grid(row=6, column=0, columnspan=2, pady=10, padx=10, ipadx=135)
+    save_btn = Button(editor, text="Save", width=5, height=1, command= lambda: update(record_id))
+    save_btn.grid(row=6, column=1, columnspan=2, pady=10, padx=10, ipadx=50)
+
+    # Create a delete button:
+    delete_btn = Button(editor, text="Delete", width=5, height=1, command= lambda: delete(record_id))
+    delete_btn.grid(row=6, column=0, columnspan=1, pady=10, padx=10, ipadx=50)
 
     # Loop through the results:
     for record in records:
@@ -168,7 +217,7 @@ def show():
     for record in records:
         print_rec += str(record[0]) + " " + str(record[1]) + " " + str(record[2]) + " " + str(record[3]) + "\n"
 
-    query_label = Label(root, text=print_rec)
+    query_label = Label(second_frame, text=print_rec)
     query_label.grid(row=2, column=0, columnspan=2)
 
     conn.commit()
@@ -178,6 +227,12 @@ def show():
 #Function to update the notes shown on main screen
 def update_main_screen():
     global count
+    global buttons
+    buttons=[]
+    for i in range(len(buttons)):
+        print("destroying buttons")
+        buttons[i].destroy()
+
     conn = sqlite3.connect('saved_memos.db')
     c = conn.cursor()
 
@@ -188,8 +243,9 @@ def update_main_screen():
     for record in records:
         current_rec = str(record[3]) + " " + str(record[0]) + " " + str(record[2]).split()[0] + "\n"
         current_id = record[3]
-        query_btn = Button(root, text=current_rec, height=2, width=100, command=partial(open_memo, current_id))
+        query_btn = Button(second_frame, text=current_rec, height=2, width=100, border=0, font="Calibri", command=partial(open_memo, current_id))
         query_btn.grid(row=count, column=0, columnspan=3, pady=10, padx=10)
+        buttons.append(query_btn)
         count += 1
 
     conn.commit()
@@ -203,7 +259,8 @@ update_main_screen()
 
 
 # Create a New memo button
-new_btn = Button(root, text="Create new Memo", command=new_memo)
-new_btn.grid(row=count+1, column=2, columnspan=1, pady=10, padx=10)
+new_btn = Button(root, text="Create new Memo", width=20, height= 5, borderwidth=0, font="Rockwell 15 bold", command=new_memo)
+new_btn.pack()
+#new_btn.grid(row=count+1, column=3, columnspan=1, pady=10, padx=10)
 
 root.mainloop()
