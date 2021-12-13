@@ -99,10 +99,15 @@ def save():
     update_main_screen()
     new_memo.destroy()
 
+def add_elem():
+    global list_count
+    content.insert('1.0', add_list.get()+"\n")
+    add_list.delete(0, END)
+
 
 # Creating a new Memo
 def new_memo():
-    global new_memo
+    global new_memo, content, add_list
     new_memo = Tk()
     new_memo.title('Create a new memo')
     new_memo.geometry("750x900")
@@ -110,12 +115,24 @@ def new_memo():
     new_memo.configure(background='white', border=0)
 
 
+    #Adding elements to a list
+    list_label = Label(new_memo, text="Add new element to the list: ", border=0, font="Rockwell 13 bold", bg='white')
+    list_label.grid(row=0, column=1)
+    add_list = Entry(new_memo, width=10)
+    add_list.grid(row=1, column=1,columnspan=2, pady=10, ipadx=145)
+
+    add_btn = Button(new_memo, text="Add", width=5, height=1,bg='#fcd190', border=0, font="Rockwell 13 bold", command=add_elem)
+    add_btn.grid(row=2, column=1, columnspan=2, pady=10, ipadx=145)
+
+    #content_edit.insert('1.0', record[2])
+
+
     # Creating a Back Button
     back_btn = Button(new_memo, text="Back", width=5, height=1,bg='#fcd190', border=0, font="Rockwell 13 bold", command=new_memo.destroy)
     back_btn.grid(row=0, column=0, columnspan=1)
 
     global content
-    content = Text(new_memo,border=1, height=35, width=45, font="Calibri 13")
+    content = Text(new_memo,border=1, height=32, width=45, font="Calibri 13")
     content.config(highlightthickness=2, highlightbackground='#fcd190')
     content.grid(row=3, column=1)
 
