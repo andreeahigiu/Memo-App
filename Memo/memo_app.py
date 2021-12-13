@@ -37,16 +37,39 @@ c.execute("""CREATE TABLE if not exists memos (
         content txt
         )""")
 
-c.execute("SELECT *, oid FROM memos")
-records = c.fetchall()
 
-#Function to update a Memo
-def update():
-    return
+# Function to update a Memo
+def update(id):
+    conn = sqlite3.connect('saved_memos.db')
+    c = conn.cursor()
+
+    # get the id given as input
+    record_id = id
+    c.execute("""UPDATE memos SET
+        date = :d,
+        time = :t,
+        content = :c
+
+        WHERE oid = :oid """,
+              {
+                  'd': datetime.today().strftime('%Y-%m-%d'),
+                  't': datetime.today().strftime('%H:%M:%S'),
+                  'c': content_edit.get("1.0","end"),
+
+                  'oid': record_id
+
+              }
+
+              )
+
+    conn.commit()
+    conn.close()
+    update_main_screen()
+    editor.destroy()
+
 
 # Function to ope an existing memo
 def open_memo(id):
-    print(id)
     global editor, date, time
     editor = Tk()  # creating the GUI window
     editor.title('Update a record')
@@ -65,22 +88,26 @@ def open_memo(id):
     global content_edit
 
     content_edit = Text(editor, height=10, width=30)
-    content_edit.grid(row=2, column=1)
+    content_edit.grid(row=3, column=1)
 
     for record in records:
         date = record[0]
         time = record[1]
 
+    # Creating a Back Button
+    back_btn = Button(editor, text="Back", width=5, height=1, command=editor.destroy)
+    back_btn.grid(row=0, column=0, columnspan=1)
+
     # Creating the text box Labels
     date_label = Label(editor, text=date)
-    date_label.grid(row=0, column=1)
+    date_label.grid(row=1, column=1)
     time_label = Label(editor, text="Last edited at:  " + time)
-    time_label.grid(row=1, column=1)
+    time_label.grid(row=2, column=1)
     content_label = Label(editor, text="Memo Content:")
-    content_label.grid(row=2, column=0)
+    content_label.grid(row=3, column=0)
 
     # Create a save button:
-    save_btn = Button(editor, text="Save", command=update)
+    save_btn = Button(editor, text="Save", command= lambda: update(record_id))
     save_btn.grid(row=6, column=0, columnspan=2, pady=10, padx=10, ipadx=135)
 
     # Loop through the results:
@@ -110,23 +137,35 @@ def show():
     conn.close()
 
 
-#Showing all the existing notes
-count=2
-for record in records:
-    current_rec = str(record[3]) + " " + str(record[0]) + " " + str(record[2]).split()[0] + "\n"
-    current_id = record[3]
-    query_btn = Button(root, text=current_rec, height=2, width=100, command=partial(open_memo, current_id))
-    query_btn.grid(row=count, column=0, columnspan=3, pady=10, padx=10)
-    count += 1
+#Function to update the notes shown on main screen
+def update_main_screen():
+    global count
+    conn = sqlite3.connect('saved_memos.db')
+    c = conn.cursor()
 
-# query_btn1 = Button(root, text="shit", height=2, width=100, command=open)
-# query_btn1.grid(row=count, column=0, columnspan=3, pady=10, padx=10)
+    c.execute("SELECT *, oid FROM memos")
+    records = c.fetchall()
+    count=2
+    # Showing all the existing notes
+    for record in records:
+        current_rec = str(record[3]) + " " + str(record[0]) + " " + str(record[2]).split()[0] + "\n"
+        current_id = record[3]
+        query_btn = Button(root, text=current_rec, height=2, width=100, command=partial(open_memo, current_id))
+        query_btn.grid(row=count, column=0, columnspan=3, pady=10, padx=10)
+        count += 1
+
+    conn.commit()
+    conn.close()
+
+
+
+update_main_screen()
 #command=lambda: open(i)
 
 
 
 # Create a New memo button
-new_btn = Button(root, text="Create new Memo", command= show)
+new_btn = Button(root, text="Create new Memo", command=new_memo)
 new_btn.grid(row=count+1, column=2, columnspan=1, pady=10, padx=10)
 
 root.mainloop()
