@@ -37,6 +37,44 @@ c.execute("""CREATE TABLE if not exists memos (
         content txt
         )""")
 
+# Adding a new memo to the DB
+def save():
+    conn = sqlite3.connect('saved_memos.db')
+    c = conn.cursor()
+
+    # Insert into table:
+    c.execute("INSERT INTO memos VALUES (:date, :time, :content)",
+              {
+                  #python dictionary
+                  'date': datetime.today().strftime('%Y-%m-%d'),
+                  'time': datetime.today().strftime('%H:%M:%S'),
+                  'content': content.get("1.0","end")
+              })
+
+    conn.commit()
+    conn.close()
+    update_main_screen()
+    new_memo.destroy()
+
+# Creating a new Memo
+def new_memo():
+    global new_memo
+    new_memo = Tk()
+    new_memo.title('Create a new memo')
+    new_memo.geometry("600x300")
+
+    # Creating a Back Button
+    back_btn = Button(new_memo, text="Back", width=5, height=1, command=new_memo.destroy)
+    back_btn.grid(row=0, column=0, columnspan=1)
+
+    global content
+    content = Text(new_memo, height=10, width=30)
+    content.grid(row=3, column=1)
+
+
+    save_btn = Button(new_memo, text="Save", command= save)
+    save_btn.grid(row=6, column=0, columnspan=2, pady=10, padx=10, ipadx=135)
+
 
 # Function to update a Memo
 def update(id):
