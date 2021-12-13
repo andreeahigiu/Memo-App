@@ -1,12 +1,9 @@
 from functools import partial
 from tkinter import *
-import tkinter as tk
 from tkinter import ttk
 
 from PIL import ImageTk, Image
 import sqlite3
-# import datetime
-# from datetime import date
 from datetime import datetime
 
 root = Tk()  # creating the GUI window
@@ -99,6 +96,7 @@ def save():
     update_main_screen()
     new_memo.destroy()
 
+
 def add_elem():
     global list_count
     content.insert('1.0', add_list.get()+"\n")
@@ -139,7 +137,7 @@ def new_memo():
     content_label = Label(new_memo, text="Memo Content:", border=0, font="Rockwell 13 bold", bg='white')
     content_label.grid(row=3, column=0, ipadx=60)
 
-    save_btn = Button(new_memo, text="Save",bg='#fcd190', border=0, font="Rockwell 13 bold",command=save)
+    save_btn = Button(new_memo, text="Save",bg='#fcd190', border=0, font="Rockwell 13 bold", command=save)
     save_btn.grid(row=6, column=1, columnspan=2, pady=10, ipadx=145)
 
 
@@ -171,7 +169,7 @@ def update(id):
     editor.destroy()
 
 
-# Function to ope an existing memo
+# Function to open an existing memo
 def open_memo(id):
     global editor, date, time
     editor = Tk()  # creating the GUI window
@@ -208,7 +206,7 @@ def open_memo(id):
     date_label.grid(row=1, column=1)
     time_label = Label(editor,border=0, font="Rockwell 13", bg='white', text="Last edited at:  " + time)
     time_label.grid(row=2, column=1)
-    content_label = Label(editor, text="Memo Content:",border=0, font="Rockwell 13", bg='white')
+    content_label = Label(editor, text="Memo Content:", border=0, font="Rockwell 13", bg='white')
     content_label.grid(row=3, column=0)
 
     # Create a save button:
@@ -222,25 +220,6 @@ def open_memo(id):
     # Loop through the results:
     for record in records:
         content_edit.insert('1.0', record[2])
-
-    conn.commit()
-    conn.close()
-
-
-def show():
-    conn = sqlite3.connect('saved_memos.db')
-    c = conn.cursor()
-
-    # Query the db
-    c.execute("SELECT *, oid FROM memos")
-    records = c.fetchall()
-
-    print_rec = ''
-    for record in records:
-        print_rec += str(record[0]) + " " + str(record[1]) + " " + str(record[2]) + " " + str(record[3]) + "\n"
-
-    query_label = Label(second_frame, text=print_rec)
-    query_label.grid(row=2, column=0, columnspan=2)
 
     conn.commit()
     conn.close()
@@ -263,7 +242,7 @@ def update_main_screen():
     count = 2
     # Showing all the existing notes
     for record in records:
-        current_rec =  str(record[0]) + " " + str(record[2]).split()[0] + "\n"
+        current_rec = str(record[0]) + " " + str(record[2]).split('\n')[0] + "\n"
         current_id = record[3]
         query_btn = Button(second_frame, text=current_rec, height=2, width=100, border=0, bg='#fcd190', font="Calibri", anchor="w",
                            command=partial(open_memo, current_id))
@@ -275,14 +254,12 @@ def update_main_screen():
     conn.close()
 
 
+# Displaying the existing Memos on the main window
 update_main_screen()
-# command=lambda: open(i)
-
 
 # Create a New memo button
 new_btn = Button(root, text="Create new Memo", width=20, height=2, borderwidth=0,bg='#fcd190', font="Rockwell 15 bold",
                  command=new_memo)
 new_btn.pack()
-# new_btn.grid(row=count+1, column=3, columnspan=1, pady=10, padx=10)
 
 root.mainloop()
