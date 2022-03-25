@@ -41,6 +41,7 @@ second_frame = Frame(canvas, background='white', border=0)
 # Adding a new window to the Canvas:
 canvas.create_window((0, 0), window=second_frame, anchor="nw")
 
+
 # Database:
 
 # Create the database/ Connect to a DB
